@@ -37,7 +37,16 @@ enum FormulaResult
 	MONTHLY_VOLUME,
 	UNDERLYING_SYMBOL
 };
-
+enum FormulaType
+{
+	EN_FormulaType_None = 0,
+	EN_FormulaType_Tabular = 1,
+	EN_FormulaType_Tiered = 2,
+	EN_FormulaType_Raw = 3,
+	EN_FormulaType_Builder = 4,
+	EN_FormulaType_AdvBuilder = 5,
+	EN_FormulaType_Coded = 6
+};
 enum  EqualityOperator
 {
 	EN_EqualityOperator_None = 0,
@@ -290,6 +299,12 @@ struct OrderExecutionData
 			<< "Side:" << data.side << '|' << "Symbol:" << data.symbol << '|' << "ExecQty:" << data.execQty << '|' << "AvgPx:" << data.avgPx << '|' << "LastShares:" << data.lastShares << '|'
 			<< "LastPx:" << data.lastPx << '|' << "Capacity:" << data.capacity << '|' << "FillCount:" << data.fillCount << '|' << "Currency:" << data.currency << '|' << "FirmID:" << data.firmId << '|';
 		return os;
+	}
+	bool operator < (const OrderExecutionData& other) const
+	{
+		// Compare based on field1, field2, and field3
+		return std::tie(other.accountValue, other.time, other.orderId, other.executionId) <
+			std::tie(accountValue, time, orderId, executionId);
 	}
 };
 

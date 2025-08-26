@@ -1,6 +1,6 @@
 #include "JsonParser.h"
 
-void makeOrder(rapidjson::Document& doc, std::queue<OrderExecutionData>& orderData) {
+void makeOrder(rapidjson::Document& doc, std::priority_queue<OrderExecutionData>& orderData) {
     if (doc.IsObject() && doc.HasMember("Executions") && doc["Executions"].IsArray() && !doc["Executions"].Empty()) {
         if (doc.IsObject() && doc.HasMember("Executions") && doc["Executions"].IsArray()) {
             for (const auto& exec : doc["Executions"].GetArray()) {

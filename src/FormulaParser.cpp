@@ -32,58 +32,43 @@ extern "C" FORMULAPARSER_API const char* ProcessJson(const char* jsonInput)
         g_result = "Error: invalid JSON";
         return g_result.c_str();
     }
-    std::queue<OrderExecutionData> Executions;
+	std::priority_queue<OrderExecutionData> Executions;
     std::vector<PlanData> Plans;
 	std::vector<ExecutionResult> results;
-
+	std::string result = "";
     makeOrder(d, Executions);
     makePlans(d, Plans);
 
 	while (!Executions.empty()) {
-		OrderExecutionData exec = Executions.front();
+		OrderExecutionData exec = Executions.top();
 		Executions.pop();
 		double totalFee = 0.0;
 		for (const auto& plan : Plans) {
 			std::pair<bool, double> ans{ false, 0.0 };
 			switch (plan.formulaType) {
-			case 1: {
+			case EN_FormulaType_Tabular: {
 				FeeFormula::TabularMethod tabularMethod(plan.formula_final);
 				ans = tabularMethod.evaluate(exec);
 				break;
 			}
-			case 2: {
+			case EN_FormulaType_Tiered: {
 				TieredMethod tieredMethod(plan.formula_final);
 				ans = tieredMethod.evaluate(exec);
 				break;
 			}
-			case 3: {
+			case EN_FormulaType_Raw: {
 				RawParser rawMethod(plan.formula_final);
 				
 				ans = rawMethod.Evaluate(exec);
 				break;
 			}
 			}
-			totalFee += ans.second;
+			result += "{ ExecutionId: " + exec.executionId + " PlanId: " + plan.id + " Fees: " + std::to_string(ans.second) + "}";
 		}
 		results.push_back({ exec.executionId, totalFee });
 	}
 
-	Document outputDoc;
-	outputDoc.SetArray();
-	auto& alloc = outputDoc.GetAllocator();
-
-	for (const auto& r : results) {
-		Value obj(kObjectType);
-		obj.AddMember("ExecutionId", Value(r.executionId.c_str(), alloc), alloc);
-		obj.AddMember("TotalFee", r.totalFee, alloc);
-		outputDoc.PushBack(obj, alloc);
-	}
-
-	StringBuffer buffer;
-	Writer<StringBuffer> writer(buffer);
-	outputDoc.Accept(writer);
-
-	g_result = buffer.GetString();
+	g_result = result;
 	return g_result.c_str();
 
 }

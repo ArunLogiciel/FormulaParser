@@ -5,5 +5,5 @@
 #include <queue>
 #include "BusinessObjects.h"
 
-void makeOrder(rapidjson::Document& doc, std::queue<OrderExecutionData>& orderData);
+void makeOrder(rapidjson::Document& doc, std::priority_queue<OrderExecutionData>& orderData);
 void makePlans(rapidjson::Document& doc, std::vector<PlanData>& plansQueue);
