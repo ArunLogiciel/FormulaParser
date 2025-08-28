@@ -2,7 +2,7 @@
 
 project(FormulaParser VERSION 0.0.0.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON) # Export all symbols if not marked manually
 
 add_definitions(/bigobj)

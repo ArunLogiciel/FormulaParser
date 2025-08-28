@@ -35,14 +35,15 @@ extern "C" FORMULAPARSER_API const char* ProcessJson(const char* jsonInput)
 	std::priority_queue<OrderExecutionData> Executions;
     std::vector<PlanData> Plans;
 	std::vector<ExecutionResult> results;
-	std::string result = "";
+	g_result = "";
+	
     makeOrder(d, Executions);
     makePlans(d, Plans);
 
-	while (!Executions.empty()) {
+	while(!Executions.empty()) {
 		OrderExecutionData exec = Executions.top();
 		Executions.pop();
-		double totalFee = 0.0;
+	
 		for (const auto& plan : Plans) {
 			std::pair<bool, double> ans{ false, 0.0 };
 			switch (plan.formulaType) {
@@ -63,12 +64,13 @@ extern "C" FORMULAPARSER_API const char* ProcessJson(const char* jsonInput)
 				break;
 			}
 			}
-			result += "{ ExecutionId: " + exec.executionId + " PlanId: " + plan.id + " Fees: " + std::to_string(ans.second) + "}";
+
+			g_result += "{ ExecutionId: " + exec.executionId + ",\nPlanId: " + plan.id + ",\nFees: " + std::to_string(ans.second) + "},\n";
 		}
 		results.push_back({ exec.executionId, totalFee });
 	}
 
-	g_result = result;
+	g_result = g_result + "]";
 	return g_result.c_str();
 
 }

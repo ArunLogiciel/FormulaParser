@@ -165,30 +165,6 @@ void makePlans(rapidjson::Document& doc, std::vector<PlanData>& plansQueue) {
                 rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
                 plan["Formula"].Accept(writer);
                 p.formula_final = buffer.GetString();
-                const auto& formula = plan["Formula"];
-                if (formula.IsObject()) {  // Tiered formula
-                    if (formula.HasMember("TieredType") && formula["TieredType"].IsInt())
-                        p.formula.tieredType = formula["TieredType"].GetInt();
-
-                    if (formula.HasMember("isRegressive") && formula["isRegressive"].IsBool())
-                        p.formula.isRegressive = formula["isRegressive"].GetBool();
-
-                    if (formula.HasMember("TieredTable") && formula["TieredTable"].IsArray()) {
-                        for (const auto& entry : formula["TieredTable"].GetArray()) {
-                            TieredTableEntry t;
-                            if (entry.HasMember("StartRange") && entry["StartRange"].IsNumber())
-                                t.startRange = entry["StartRange"].GetDouble();
-
-                            if (entry.HasMember("EndRange") && entry["EndRange"].IsNumber())
-                                t.endRange = entry["EndRange"].GetDouble();
-
-                            if (entry.HasMember("Fee") && entry["Fee"].IsString())
-                                t.fee = entry["Fee"].GetString();
-
-                            if (entry.HasMember("SequenceId") && entry["SequenceId"].IsInt())
-                                t.sequenceId = entry["SequenceId"].GetInt();
-
-                            p.formula.tieredTable.push_back(t);
                         }
                     }
                 }
