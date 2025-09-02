@@ -10,6 +10,9 @@ void makeOrder(rapidjson::Document& doc, std::priority_queue<OrderExecutionData>
                 if (exec.HasMember("OrderId") && exec["OrderId"].IsString())
                     data.orderId = exec["OrderId"].GetString();
 
+                if (exec.HasMember("Id") && exec["Id"].IsInt64())
+                    data.id =std::to_string(exec["Id"].GetInt64());
+
                 if (exec.HasMember("ExecutionId") && exec["ExecutionId"].IsString())
                     data.executionId = exec["ExecutionId"].GetString();
 
