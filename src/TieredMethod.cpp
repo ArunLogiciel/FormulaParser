@@ -6,7 +6,6 @@ TieredMethod::TieredMethod(std::string formulaJSON)
 {
     parse_json(formulaJSON);
 }
-
 std::pair<bool, double> TieredMethod::evaluate(const OrderExecutionData& data)
 {
     std::pair<bool,double> fee = {};
@@ -24,7 +23,28 @@ std::pair<bool, double> TieredMethod::evaluate(const OrderExecutionData& data)
                 fee = calculateTieredFee(tier_plan.tiers, data.monthlyVolume, data.quantity);
             }
             break;
+        case EN_Tier_MPIdMonthly_Volume:
 
+            if (tier_plan.isRegressive)
+            {
+                fee = calculateTieredFeeRegressive(tier_plan.tiers, data.mpidMonthlyVolume, data.quantity);
+            }
+            else
+            {
+                fee = calculateTieredFee(tier_plan.tiers, data.mpidMonthlyVolume, data.quantity);
+            }
+            break;
+        case EN_Tier_FirmMonthly_Volume:
+
+            if (tier_plan.isRegressive)
+            {
+                fee = calculateTieredFeeRegressive(tier_plan.tiers, data.firmMonthlyVolume, data.quantity);
+            }
+            else
+            {
+                fee = calculateTieredFee(tier_plan.tiers, data.firmMonthlyVolume, data.quantity);
+            }
+            break;
         case EN_Tier_Price:
             fee = calculateTieredFee(tier_plan.tiers, data.price, data.quantity);
             break;
@@ -59,7 +79,7 @@ void TieredMethod::parse_json(std::string& formula)
     }
 
     tier_plan.type = static_cast<TierType>(document["TieredType"].GetInt());
-    tier_plan.isRegressive = document["isRegressive"].GetBool();// MR: Added To Get Value of bool from JSON
+    tier_plan.isRegressive = document["IsRegressive"].GetBool();// MR: Added To Get Value of bool from JSON
     const rapidjson::Value& json_tiers = document["TieredTable"];
     for (rapidjson::Value::ConstValueIterator value = json_tiers.Begin(); value != json_tiers.End(); ++value)
     {

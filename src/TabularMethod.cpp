@@ -5,13 +5,12 @@
 
 namespace FeeFormula
 {
+	
 	TabularMethod::TabularMethod(std::string formula)
 	{
-		//std::cout << " 'Initializing Tabular Method'";
 		parse_json(formula);
 		make_tree(parsed_formulas);
 	}
-
 	std::pair<EqualityOperator, std::string> TabularMethod::parse_string_value(const std::string& str)
 	{
 		static const char* gt_op = ">";
@@ -311,14 +310,79 @@ namespace FeeFormula
 					auto fee = parse_fee(row[FormulaResult::FEE]);
 					leaf.formula_ = fee;
 				}
+				if (row.at(FormulaResult::MPID_MONTHLY_VOLUME) != "")
+				{
 
+					condition mpidMonthlyVolume;
+					mpidMonthlyVolume.term_ = FormulaResult::MPID_MONTHLY_VOLUME;
+					auto value = parse_double_value(row[FormulaResult::MPID_MONTHLY_VOLUME]);
+					mpidMonthlyVolume.op_ = value.first;
+					mpidMonthlyVolume.value_ = static_cast<double>(value.second);
+					leaf.conditions_.emplace_back(mpidMonthlyVolume);
+				}
+				if (row.at(FormulaResult::FIRM_MONTHLY_VOLUME) != "")
+				{
+
+					condition firmMonthlyVolume;
+					firmMonthlyVolume.term_ = FormulaResult::FIRM_MONTHLY_VOLUME;
+					auto value = parse_double_value(row[FormulaResult::FIRM_MONTHLY_VOLUME]);
+					firmMonthlyVolume.op_ = value.first;
+					firmMonthlyVolume.value_ = static_cast<double>(value.second);
+					leaf.conditions_.emplace_back(firmMonthlyVolume);
+				}
+				if (row.at(FormulaResult::LAST_MARKET) != "")
+				{
+					condition lastMarket;
+					lastMarket.term_ = FormulaResult::LAST_MARKET;
+					lastMarket.op_ = EN_EqualityOperator_EqualsTo;
+					lastMarket.value_ = parse_string_values(row.at(FormulaResult::LAST_MARKET));
+					leaf.conditions_.emplace_back(lastMarket);
+				}
+				//if (row.at(FormulaResult::EXCHANGE_TYPE) != "")
+				//{
+				//	condition exchangeType;
+
+				//	exchangeType.term_ = FormulaResult::EXCHANGE_TYPE;
+				//	exchangeType.op_ = EN_EqualityOperator_EqualsTo;
+				//	exchangeType.value_ = parse_string_values(row[FormulaResult::EXCHANGE_TYPE]);
+				//	leaf.conditions_.emplace_back(exchangeType);
+				//}
 				//if (row.at(FormulaResult::UNDERLYING_SYMBOL) != "")
 				//{
-				//	condition underlyingSymbol;
-				//	underlyingSymbol.term_ = to_string(FormulaResult::UNDERLYING_SYMBOL);
-				//	underlyingSymbol.op_ = "=";
-				//	underlyingSymbol.value_ = row[FormulaResult::UNDERLYING_SYMBOL];
-				//	leaf.conditions_.emplace_back(underlyingSymbol);
+				//	condition underlyingsymbol;
+
+				//	underlyingsymbol.term_ = FormulaResult::UNDERLYING_SYMBOL;
+				//	underlyingsymbol.op_ = EN_EqualityOperator_EqualsTo;
+				//	underlyingsymbol.value_ = parse_string_values(row[FormulaResult::UNDERLYING_SYMBOL]);
+				//	leaf.conditions_.emplace_back(underlyingsymbol);
+				//}
+				//if (row.at(FormulaResult::MPID_MONTHLY_VOLUME) != "")
+				//{
+
+				//	condition mpidMonthlyVolume;
+				//	mpidMonthlyVolume.term_ = FormulaResult::MPID_MONTHLY_VOLUME;
+				//	auto value = parse_double_value(row[FormulaResult::MPID_MONTHLY_VOLUME]);
+				//	mpidMonthlyVolume.op_ = value.first;
+				//	mpidMonthlyVolume.value_ = static_cast<double>(value.second);
+				//	leaf.conditions_.emplace_back(mpidMonthlyVolume);
+				//}
+				//if (row.at(FormulaResult::FIRM_MONTHLY_VOLUME) != "")
+				//{
+
+				//	condition firmMonthlyVolume;
+				//	firmMonthlyVolume.term_ = FormulaResult::FIRM_MONTHLY_VOLUME;
+				//	auto value = parse_double_value(row[FormulaResult::FIRM_MONTHLY_VOLUME]);
+				//	firmMonthlyVolume.op_ = value.first;
+				//	firmMonthlyVolume.value_ = static_cast<double>(value.second);
+				//	leaf.conditions_.emplace_back(firmMonthlyVolume);
+				//}
+				//if (row.at(FormulaResult::LAST_MARKET) != "")
+				//{
+				//	condition lastMarket;
+				//	lastMarket.term_ = FormulaResult::LAST_MARKET;
+				//	lastMarket.op_ = EN_EqualityOperator_EqualsTo;
+				//	lastMarket.value_ = parse_string_values(row.at(FormulaResult::LAST_MARKET));
+				//	leaf.conditions_.emplace_back(lastMarket);
 				//}
 
 				m_tree.branches_.emplace_back(leaf);
@@ -392,7 +456,6 @@ namespace FeeFormula
 			}
 		}
 	}
-
 	void TabularMethod::parse_json(std::string& formula)
 	{
 		//std::cout << " 'Parsing JSON of Tabular Method'";
@@ -446,7 +509,11 @@ namespace FeeFormula
 			/*17*/	formula.emplace_back(!jsonData["Fee"].IsNull() ? jsonData["Fee"].GetString() : "");
 			/*18*/	formula.emplace_back(!jsonData["Side"].IsNull() ? std::to_string(jsonData["Side"].GetInt()) : "");
 			/*19*/	formula.emplace_back(!jsonData["MonthlyVolume"].IsNull() ? jsonData["MonthlyVolume"].GetString() : "");
-
+			/*20*/formula.emplace_back((jsonData.HasMember("Mult") && !jsonData["Mult"].IsNull()) ? std::to_string(jsonData["Mult"].GetDouble()) : "1");
+			/*21*/formula.emplace_back((jsonData.HasMember("UnderlyingSymbol") && !jsonData["UnderlyingSymbol"].IsNull()) ? jsonData["UnderlyingSymbol"].GetString() : "");
+			/*22*/formula.emplace_back((jsonData.HasMember("MPIDMonthlyVolume") && !jsonData["MPIDMonthlyVolume"].IsNull()) ? jsonData["MPIDMonthlyVolume"].GetString() : "");
+			/*23*/formula.emplace_back((jsonData.HasMember("FirmMonthlyVolume") && !jsonData["FirmMonthlyVolume"].IsNull()) ? jsonData["FirmMonthlyVolume"].GetString() : "");
+			/*24*/formula.emplace_back((jsonData.HasMember("LastMarket") && !jsonData["LastMarket"].IsNull()) ? jsonData["LastMarket"].GetString() : "");
 			parsed_formulas.emplace_back(formula);
 		}
 		sort(parsed_formulas.begin(), parsed_formulas.end(), 
@@ -494,7 +561,6 @@ namespace FeeFormula
 		//std::cout << " 'Evaluating Fee using Tabular Method'";
 		return m_tree.evaluate(exec);
 	}
-
 	template <>
 	bool ge_evaluator::operator()(const double& lval, const std::int64_t& rval) const
 	{

@@ -1,5 +1,5 @@
+#define NOMINMAX
 #pragma once
-
 #include "BusinessObjects.h"
 #include <exprtk/exprtk.hpp>
 
@@ -13,6 +13,7 @@ class RawParser
 private:
 	IdentifiableVariables vars;
 	std::string formula;
+	std::string expr_string;
 	expression_t expression;
 	parser_t parser;
 	bool isCompiled;
@@ -23,7 +24,8 @@ private:
 
 public:
 	explicit RawParser(std::string recvdFormula);
+	
 	std::pair<bool, double> Evaluate(const OrderExecutionData& data);
 	bool IsCompiled();
-	RawParser() = delete;
+	//RawParser() = delete;
 };

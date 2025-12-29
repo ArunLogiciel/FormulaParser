@@ -427,6 +427,22 @@ namespace FeeFormula
 			//std::cout << __PRETTY_FUNCTION__ << " 'No Plan Sequence Executed Returning Default Fee: 0.0'";
 			return { false, 0.0 };
 		}
+		[[nodiscard]] result evaluate_PerOrder(const OrderExecutionData& exec) const
+		{
+			int i = 0; //SequenceId
+			for (const auto& branch : branches_)
+			{
+				result res = evaluate_rule(branch, exec);
+				if (res.first)
+				{
+					//std::cout << __PRETTY_FUNCTION__ << " 'Plan Sequence Executed: " << i << "'";
+					return res;
+				}
+				i++;
+			}
+			//std::cout << __PRETTY_FUNCTION__ << " 'No Plan Sequence Executed Returning Default Fee: 0.0'";
+			return { false, 0.0 };
+		}
 		std::vector<rule> branches_;
 	};
 
@@ -448,6 +464,7 @@ namespace FeeFormula
 		
 		public:
 			TabularMethod(std::string formula);						//Calls Tree->make_tree()
-			result evaluate(const OrderExecutionData&) final override;	//Calls Tree->evaluate()	
+			result evaluate(const OrderExecutionData&) final override;	//Calls Tree->evaluate()		
+
 	};
 }
