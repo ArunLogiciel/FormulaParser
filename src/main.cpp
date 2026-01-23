@@ -4,6 +4,7 @@
 #include "TabularParser.h"
 #include "Timer.hpp"
 #include "iostream"
+#include "FormulaParser.h"
 
 
 bool isValidExpression(const char* expr)
@@ -31,32 +32,32 @@ bool isValidExpression(const char* expr)
 }
 int main()
 {
-	//if (json.GetMember("FormulaType") == 1)
-	//{
-	//	std::string str_ = json["Formula"];
-	//	//TabularParser tabularMethod(str_1);
-	//	/*for (execution : executions)
-	//	{
-	//		auto result = tabularMethod.Evaluate(execution);
-	//	}*/
 
+	//// Prepare output buffer
+	std::string jsonData = "";
+	const int bufferSize = 10240;
+	std::vector<char> outBuffer(bufferSize, 0);
 
-	//}
-	//std::pair<bool,double> ans;
-
-
-	//std::cout << "RawMethod:\n";
-	//{
-	//	Timer time_;
-	//	for (int i = 0; i < 1; i++)
-	//	{
-	//		
-	//		ans = rawMethod.Evaluate(data);
-	//	}
-	//}
-	//std::cout << "RAW METHOD ANS: " << ans.second << std::endl;
-
-	
+	// Call your formula parser function
+	//ProcessJson(jsonData);
+   // ProcessJson(jsonData, outBuffer.data(), 10240);
+	const char* expr = R"(
+if(LastMarket == 'A')
+{
+        Fee := mul(Quantity, 0.36/0)/0;
+}
+else  /* price >= 1 */
+{
+        Fee := mul(Quantity, 0.45);
+}
+)";
+	bool result = isValidExpression(expr);
+	// Print whatever the function wrote into the buffer
+	/*std::cout << "Output:\n" << outBuffer.data() << std::endl;*/
+	std::cout << result << std::endl;
+	std::cout << "Done." << std::endl;
+	return 0;
 }
 
 //extern "C" __declspec(dllexport) bool __stdcall isValidExpression(const char* expr);
+

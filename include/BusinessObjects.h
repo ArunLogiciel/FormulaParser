@@ -1,3 +1,4 @@
+#pragma once
 #if defined(__GNUC__) || defined(__clang__)
 #define MY_PRETTY_FUNCTION __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
@@ -35,7 +36,10 @@ enum FormulaResult
 	FEE,
 	SIDE,
 	MONTHLY_VOLUME,
-	UNDERLYING_SYMBOL
+	UNDERLYING_SYMBOL,
+	MPID_MONTHLY_VOLUME,
+	FIRM_MONTHLY_VOLUME,
+	LAST_MARKET,
 };
 enum FormulaType
 {
@@ -135,10 +139,12 @@ struct FeeComissionData {
 	}
 };
 struct ExecutionResult {
-	std::string executionId;
+	std::string Id;
+	std::string planId;
+	std::string monthlyVolume;
 	double totalFee = 0.0;
 };
-// Aliases
+ //Aliases
 struct OrderExecutionData
 {
 	using value = std::variant <bool, std::int64_t, double, std::string, std::vector<std::string>>;
@@ -200,20 +206,35 @@ struct OrderExecutionData
 		{
 			return beforeHours;
 		}
-		else if (key == LOT)
+		
+		else if (key == MPID_MONTHLY_VOLUME)
 		{
-			switch (lot)
-			{
-			case 1:
-				return "ODD";
-			case 2:
-				return "EVEN";
-			case 3:
-				return "MIXED";
-			default:
-				return "";
-			}
+			return mpidMonthlyVolume;
 		}
+		else if (key == FIRM_MONTHLY_VOLUME)
+		{
+			return firmMonthlyVolume;
+		}
+		else if (key == UNDERLYING_SYMBOL) {
+			return underlyingSymbol;
+		}
+		else if (key == LAST_MARKET) {
+			return lastMarket;
+		}
+		//else if (key == LOT)
+		//{
+		//	switch (lot)
+		//	{
+		//	case 1:
+		//		return "ODD";
+		//	case 2:
+		//		return "EVEN";
+		//	case 3:
+		//		return "MIXED";
+		//	default:
+		//		return "";
+		//	}
+		//}
 		else if (key == TIME)
 		{
 			return time;
@@ -226,6 +247,7 @@ struct OrderExecutionData
 		{
 			return static_cast<int64_t>(side);
 		}
+		
 		else if (key == UNDERLYING_SYMBOL)
 		{
 			return underlyingSymbol;
@@ -237,7 +259,7 @@ struct OrderExecutionData
 	}
 
 	[[nodiscard]] double get_price() const { return price; }
-	[[nodiscard]] int64_t get_qty() const { return quantity; }
+	[[nodiscard]] double get_qty() const { return quantity; }
 	std::string route{ "" };
 	std::string liq{ "" };
 	std::string execBroker{ "" };
@@ -249,22 +271,25 @@ struct OrderExecutionData
 	std::string date{ "" };
 	std::string symbol{ "" };
 	std::string currency{ "" };
+	std::string lastMarket{ "" };
 
 	double price{ 0.0 };
 	double avgPx{ 0.00 };
 	double lastPx{ 0.00 };
-
-	int64_t quantity{ 0 };
-	int64_t monthlyVolume{ 0 };
+	double multiplier{ 0.00 };
+	double quantity{ 0 };
+	double monthlyVolume{ 0 };
+	double mpidMonthlyVolume{ 0 };
+	double firmMonthlyVolume{ 0 };
 	int64_t fillCount{ 0 };
-	int64_t execQty{ 0 };
-	int64_t lastShares{ 0 };
+	double execQty{ 0 };
+	double lastShares{ 0 };
 
 	bool afterHours{ false };
 	bool beforeHours{ false };
 	bool penny{ false };
 
-	int lot{};
+	/*Lot lot{};*/
 	int side{};
 	int capacity{};
 
@@ -280,7 +305,7 @@ struct OrderExecutionData
 	std::string mpidRecv{ "" };
 	std::string uniqueId{ "" };
 	std::string ExchangeType{ "" };
-
+	std::string id{ "" };
 	//TO DO: Add Support For These | From FEE RULES documentation of PropReports
 	double mult{ 0 };						//The multiplier(sometimes called "contract size" for options and "value multiplier" for futures) associated with the traded instrument and used when computing profit and loss
 	int type{};					//Type of instrument being traded (equity, option, future, index, fund, fx, bond)
@@ -292,12 +317,12 @@ struct OrderExecutionData
 
 	friend std::ostream& operator << (std::ostream& os, const OrderExecutionData& data)
 	{
-		os << "OrderID:" << data.orderId << '|' << "ExecutionID:" << data.executionId << '|' << "Account:" << data.accountId << '|' << '|' << "Route:" << data.route << '|' << "Penny:" << data.penny << '|'
+		os <<  "OrderID:" << data.orderId << '|' << "ExecutionID:" << data.executionId << '|' << "Account:" << data.accountId << '|' << '|' << "Route:" << data.route << '|' << "Penny:" << data.penny << '|'
 			<< "LIQ:" << data.liq << '|' << "Price:" << data.price << '|' << "Quantity:" << data.quantity << '|' << "ExecBroker:" << data.execBroker << '|' << "Contra:" << data.contra << '|'
-			<< "DST:" << data.dst << '|' << "Tape:" << data.tape << '|' << "MonthlyVolume:" << data.monthlyVolume << '|' << "Type:" << data.type << '|' << "BeforeHours:" << data.beforeHours << '|'
-			<< "AfterHours:" << data.afterHours << '|' << "InternalLIQ:" << data.internalLiq << '|' << "InternalRoute:" << data.internalRoute << '|' << "Lot:" << data.lot << '|' << "Time:" << data.time << '|' << "Date:" << data.date << '|'
+			<< "DST:" << data.dst << '|' << "Tape:" << data.tape << '|' << "MonthlyVolume:" << data.monthlyVolume << '|' << "MPIDMonthlyVolume" << data.mpidMonthlyVolume << '|' << "FirmMonthlyVolume:" << data.firmMonthlyVolume << '|' << "Type:" << data.type << '|' << "BeforeHours:" << data.beforeHours << '|'
+			<< "AfterHours:" << data.afterHours << '|' << "InternalLIQ:" << data.internalLiq << '|' << "InternalRoute:" << data.internalRoute  << '|' << "Time:" << data.time << '|' << "Date:" << data.date << '|'
 			<< "Side:" << data.side << '|' << "Symbol:" << data.symbol << '|' << "ExecQty:" << data.execQty << '|' << "AvgPx:" << data.avgPx << '|' << "LastShares:" << data.lastShares << '|'
-			<< "LastPx:" << data.lastPx << '|' << "Capacity:" << data.capacity << '|' << "FillCount:" << data.fillCount << '|' << "Currency:" << data.currency << '|' << "FirmID:" << data.firmId << '|';
+			<< "LastPx:" << data.lastPx << '|' << "Capacity:" << data.capacity << '|' << "FillCount:" << data.fillCount << '|' << "Currency:" << data.currency << '|' << "FirmID:" << data.firmId << '|' << "LastMarket:" << data.lastMarket << '|';
 		return os;
 	}
 	bool operator < (const OrderExecutionData& other) const
@@ -318,6 +343,8 @@ struct IdentifiableVariables
 	double Price = 0;
 	double Quantity = 0;
 	double MonthlyVolume = 0;
+	double MPIdMonthlyVolume = 0;
+	double FirmMonthlyVolume = 0;
 	double Fees = 0;
 
 	std::string Route{ "" };
@@ -333,6 +360,7 @@ struct IdentifiableVariables
 	std::string Side{ "" };
 	std::string UnderlyingSymbol{ "" }; //Adding new to support plans
 	std::string ExchangeType{ "" };
+	std::string LastMarket{ "" };
 
 	void copy(const OrderExecutionData& rhs)
 	{
@@ -341,11 +369,14 @@ struct IdentifiableVariables
 		BeforeHours = bool_to_double(rhs.beforeHours);
 		Price = static_cast <double> (rhs.price);
 		Quantity = static_cast<double>(rhs.quantity);
-		MonthlyVolume = static_cast <double> (rhs.monthlyVolume);
+		MonthlyVolume =  (rhs.monthlyVolume);
+		MPIdMonthlyVolume = (rhs.mpidMonthlyVolume);
+		FirmMonthlyVolume = (rhs.firmMonthlyVolume);
+		LastMarket = rhs.lastMarket;
 		Route = rhs.route;
 		LIQ = rhs.liq;
 		DST = rhs.dst;
-		LOT = rhs.lot;
+		/*LOT = rhs.lot;*/
 		Contra = rhs.contra;
 		Tape = rhs.tape;
 		Time = rhs.time;
@@ -424,7 +455,7 @@ struct PlanData {
 	int formulaType = 0;
 	FormulaData formula;
 	bool isCompiled = false;
-	int feeCategoryType = 0;
+	int feeCategoryType=0;
 	int incrementalPlanId = 0;
 	std::optional<int> parentPlanId;
 };
@@ -433,7 +464,10 @@ enum TierType
 	EN_Tier_None = 0,
 	EN_Tier_Price = 1,
 	EN_Tier_Quantity = 2,
-	EN_Tier_Monthly_Volume = 3
+	EN_Tier_Monthly_Volume = 3,
+	EN_Tier_MPIdMonthly_Volume = 4,
+	EN_Tier_FirmMonthly_Volume = 5
+
 };
 
 struct Tier
@@ -450,4 +484,3 @@ struct TierPlan
 	std::vector<Tier> tiers{};
 	bool isRegressive{ false };	//MR: Let's use Initializer List as per the above convention
 };
-#pragma once

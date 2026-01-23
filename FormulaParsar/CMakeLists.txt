@@ -2,7 +2,10 @@
 cmake_minimum_required (VERSION 3.25)
 
 project(FormulaParser VERSION 0.0.0.0)
-
+if(MSVC)
+    # MultiThreaded = /MT, MultiThreadedDebug = /MTd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 set(CMAKE_CXX_STANDARD 17)
 
 add_definitions(/bigobj)
