@@ -13,7 +13,7 @@
 
 
 
-namespace FeeFormula 
+namespace FeeFormula
 {
 	namespace qi = boost::spirit::qi;
 	namespace ascii = boost::spirit::ascii;
@@ -98,10 +98,10 @@ namespace FeeFormula
 	//	}
 	//}
 
-	struct eq_evaluator : public boost::static_visitor<bool> 
+	struct eq_evaluator : public boost::static_visitor<bool>
 	{
 		template <typename T, typename U>
-		bool operator()(const T& t, const U& u) const 
+		bool operator()(const T& t, const U& u) const
 		{
 			std::cout << "Type of T: " << typeid(t).name() << std::endl;
 			std::cout << "Type of U: " << typeid(u).name() << std::endl;
@@ -109,7 +109,7 @@ namespace FeeFormula
 		}
 
 		template <typename T>
-		bool operator()(const T& lhs, const T& rhs) const 
+		bool operator()(const T& lhs, const T& rhs) const
 		{
 			return lhs == rhs;
 		}
@@ -124,16 +124,16 @@ namespace FeeFormula
 		bool operator()(const std::int64_t& lval, const double& rval) const;
 	};
 
-	struct lt_evaluator : public boost::static_visitor<bool> 
+	struct lt_evaluator : public boost::static_visitor<bool>
 	{
 		template <typename T, typename U>
-		bool operator()(const T&, const U&) const 
+		bool operator()(const T&, const U&) const
 		{
 			return false; // cannot compare different types
 		}
 
 		template <typename T>
-		bool operator()(const T& lhs, const T& rhs) const 
+		bool operator()(const T& lhs, const T& rhs) const
 		{
 			return lhs < rhs;
 		}
@@ -145,16 +145,16 @@ namespace FeeFormula
 		bool operator()(const std::int64_t& lval, const double& rval) const;
 	};
 
-	struct le_evaluator : public boost::static_visitor<bool> 
+	struct le_evaluator : public boost::static_visitor<bool>
 	{
 		template <typename T, typename U>
-		bool operator()(const T&, const U&) const 
+		bool operator()(const T&, const U&) const
 		{
 			return false; // cannot compare different types
 		}
 
 		template <typename T>
-		bool operator()(const T& lhs, const T& rhs) const 
+		bool operator()(const T& lhs, const T& rhs) const
 		{
 			return lhs <= rhs;
 		}
@@ -166,16 +166,16 @@ namespace FeeFormula
 		bool operator()(const std::int64_t& lval, const double& rval) const;
 	};
 
-	struct gt_evaluator : public boost::static_visitor<bool> 
+	struct gt_evaluator : public boost::static_visitor<bool>
 	{
 		template <typename T, typename U>
-		bool operator()(const T&, const U&) const 
+		bool operator()(const T&, const U&) const
 		{
 			return false; // cannot compare different types
 		}
 
 		template <typename T>
-		bool operator()(const T& lhs, const T& rhs) const 
+		bool operator()(const T& lhs, const T& rhs) const
 		{
 			return lhs > rhs;
 		}
@@ -187,16 +187,16 @@ namespace FeeFormula
 		bool operator()(const std::int64_t& lval, const double& rval) const;
 	};
 
-	struct ge_evaluator : public boost::static_visitor<bool> 
+	struct ge_evaluator : public boost::static_visitor<bool>
 	{
 		template <typename T, typename U>
-		bool operator()(const T&, const U&) const 
+		bool operator()(const T&, const U&) const
 		{
 			return false; // cannot compare different types
 		}
 
 		template <typename T>
-		bool operator()(const T& lhs, const T& rhs) const 
+		bool operator()(const T& lhs, const T& rhs) const
 		{
 			return lhs >= rhs;
 		}
@@ -207,9 +207,9 @@ namespace FeeFormula
 		bool operator()(const std::int64_t& lval, const double& rval) const;
 	};
 
-	struct condition 
+	struct condition
 	{
-		[[nodiscard]] bool evaluate(const OrderExecutionData& exec) const 
+		[[nodiscard]] bool evaluate(const OrderExecutionData& exec) const
 		{
 			if (op_ == EN_EqualityOperator_EqualsTo)
 			{
@@ -247,7 +247,7 @@ namespace FeeFormula
 				//return boost::apply_visitor(ge_evaluator(), exec.get_attribute(term_), value_);
 			}
 
-			else 
+			else
 			{
 				throw std::runtime_error("unsupported condition operation: '" + std::to_string(op_) + "'");
 			}
@@ -293,27 +293,27 @@ namespace FeeFormula
 	};
 
 	using condition_chain = std::vector<condition>;
-	struct fee_per_share_formula 
+	struct fee_per_share_formula
 	{
-		[[nodiscard]] double evaluate(const OrderExecutionData& exec) const 
+		[[nodiscard]] double evaluate(const OrderExecutionData& exec) const
 		{
 			return fee_per_share_ * exec.get_qty();
 		}
 		double fee_per_share_;
 	};
 
-	struct fee_per_value_formula 
+	struct fee_per_value_formula
 	{
-		[[nodiscard]] double evaluate(const OrderExecutionData& exec) const 
+		[[nodiscard]] double evaluate(const OrderExecutionData& exec) const
 		{
 			return fee_per_value_ * (exec.get_qty() * exec.get_price());
 		}
 		double fee_per_value_;
 	};
 
-	struct fee_per_execution_formula 
+	struct fee_per_execution_formula
 	{
-		[[nodiscard]] double evaluate(const OrderExecutionData& exec) const 
+		[[nodiscard]] double evaluate(const OrderExecutionData& exec) const
 		{
 			return fee_per_execution_;
 		}
@@ -321,12 +321,12 @@ namespace FeeFormula
 	};
 
 	using fee_formula = std::variant<fee_per_share_formula, fee_per_value_formula, fee_per_execution_formula>;
-	struct fee_evaluator : public boost::static_visitor<double> 
+	struct fee_evaluator : public boost::static_visitor<double>
 	{
 		explicit fee_evaluator(const OrderExecutionData& exec) : exec_(exec) {}
 
 		template <typename FeeFormula>
-		[[nodiscard]] double operator()(const FeeFormula& formula) const 
+		[[nodiscard]] double operator()(const FeeFormula& formula) const
 		{
 			return formula.evaluate(exec_);
 		}
@@ -340,14 +340,14 @@ namespace FeeFormula
 	//using fee_rule_collection = boost::container::small_vector<fee_formula, 3>;
 	using result = std::pair<bool, double>;
 
-	struct leaf_rule 
+	struct leaf_rule
 	{
-		[[nodiscard]] result evaluate(const OrderExecutionData& exec) const 
+		[[nodiscard]] result evaluate(const OrderExecutionData& exec) const
 		{
 			// check all conditions
-			for (const auto& cond : conditions_) 
+			for (const auto& cond : conditions_)
 			{
-				if (!cond.evaluate(exec)) 
+				if (!cond.evaluate(exec))
 				{
 					return { false, 0.0 };	//if condition fails
 				}
@@ -409,15 +409,15 @@ namespace FeeFormula
 	//	std::vector<rule> children_;
 	//};
 
-	struct tree 
+	struct tree
 	{
-		[[nodiscard]] result evaluate(const OrderExecutionData& exec) const 
+		[[nodiscard]] result evaluate(const OrderExecutionData& exec) const
 		{
 			int i = 0; //SequenceId
-			for (const auto& branch : branches_) 
+			for (const auto& branch : branches_)
 			{
 				result res = evaluate_rule(branch, exec);
-				if (res.first) 
+				if (res.first)
 				{
 					//std::cout << __PRETTY_FUNCTION__ << " 'Plan Sequence Executed: " << i << "'";
 					return res;
@@ -448,23 +448,23 @@ namespace FeeFormula
 
 	class TabularMethod : public LSL::FeeModule::Interfaces::MethodInterface //This Class is basically a wrapper of Above Tree & Rule Functions
 	{
-		private:
-			std::vector <std::vector <std::string>>  parsed_formulas;
-			tree m_tree;	//Tree is the Main DataStructure Here
-			[[nodiscard]] inline bool string_to_bool(const std::string& str);
-			[[nodiscard]] inline value parse_string_values(const std::string&);
-			[[nodiscard]] inline std::pair<EqualityOperator, double> parse_double_value(const std::string&);
-			[[nodiscard]] inline std::pair<EqualityOperator, int64_t> parse_int_value(const std::string&);
-			[[nodiscard]] inline std::pair<EqualityOperator, std::string> parse_string_value(const std::string& str);
-			[[nodiscard]] inline fee_formula parse_fee(const std::string& str);
-			void make_tree(std::vector<std::vector<std::string>>& p_table);
-			void parse_json(std::string& formula) final override;
-			void check_members_existence(const rapidjson::Value& data);
-			TabularMethod() = delete;
-		
-		public:
-			TabularMethod(std::string formula);						//Calls Tree->make_tree()
-			result evaluate(const OrderExecutionData&) final override;	//Calls Tree->evaluate()		
+	private:
+		std::vector <std::vector <std::string>>  parsed_formulas;
+		tree m_tree;	//Tree is the Main DataStructure Here
+		[[nodiscard]] inline bool string_to_bool(const std::string& str);
+		[[nodiscard]] inline value parse_string_values(const std::string&);
+		[[nodiscard]] inline std::pair<EqualityOperator, double> parse_double_value(const std::string&);
+		[[nodiscard]] inline std::pair<EqualityOperator, int64_t> parse_int_value(const std::string&);
+		[[nodiscard]] inline std::pair<EqualityOperator, std::string> parse_string_value(const std::string& str);
+		[[nodiscard]] inline fee_formula parse_fee(const std::string& str);
+		void make_tree(std::vector<std::vector<std::string>>& p_table);
+		void parse_json(std::string& formula) final override;
+		void check_members_existence(const rapidjson::Value& data);
+		TabularMethod() = delete;
+
+	public:
+		TabularMethod(std::string formula);						//Calls Tree->make_tree()
+		result evaluate(const OrderExecutionData&) final override;	//Calls Tree->evaluate()		
 
 	};
 }

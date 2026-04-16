@@ -17,6 +17,7 @@ private:
 	expression_t expression;
 	parser_t parser;
 	bool isCompiled;
+	bool isCompiled_1;
 
 	//Private Methods
 	void PopulateSymbolTable();
@@ -24,8 +25,9 @@ private:
 
 public:
 	explicit RawParser(std::string recvdFormula);
-	
+
 	std::pair<bool, double> Evaluate(const OrderExecutionData& data);
 	bool IsCompiled();
+	bool IsCompiled_1();
 	//RawParser() = delete;
 };

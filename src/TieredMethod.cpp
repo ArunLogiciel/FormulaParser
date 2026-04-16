@@ -2,64 +2,68 @@
 #include "TieredMethod.h"
 #include "rapidjson/document.h"
 #include "ParsingException.h"
+#include "Utility.h"
 TieredMethod::TieredMethod(std::string formulaJSON)
 {
     parse_json(formulaJSON);
 }
 std::pair<bool, double> TieredMethod::evaluate(const OrderExecutionData& data)
 {
-    std::pair<bool,double> fee = {};
+    std::pair<bool, double> fee = {};
 
     switch (tier_plan.type)
     {
-        case EN_Tier_Monthly_Volume:
-            
-            if (tier_plan.isRegressive)
-            {
-                fee = calculateTieredFeeRegressive(tier_plan.tiers, data.monthlyVolume, data.quantity);
-            }
-            else
-            {
-                fee = calculateTieredFee(tier_plan.tiers, data.monthlyVolume, data.quantity);
-            }
-            break;
-        case EN_Tier_MPIdMonthly_Volume:
+    case EN_Tier_Monthly_Volume:
 
-            if (tier_plan.isRegressive)
-            {
-                fee = calculateTieredFeeRegressive(tier_plan.tiers, data.mpidMonthlyVolume, data.quantity);
-            }
-            else
-            {
-                fee = calculateTieredFee(tier_plan.tiers, data.mpidMonthlyVolume, data.quantity);
-            }
-            break;
-        case EN_Tier_FirmMonthly_Volume:
+        if (tier_plan.isRegressive)
+        {
+            fee = calculateTieredFeeRegressive(tier_plan.tiers, (data.monthlyVolume - data.quantity), data.quantity);
+        }
+        else
+        {
+            fee = calculateTieredFee(tier_plan.tiers, (data.monthlyVolume - data.quantity), data.quantity);
+        }
+        break;
+    case EN_Tier_MPIdMonthly_Volume:
 
-            if (tier_plan.isRegressive)
-            {
-                fee = calculateTieredFeeRegressive(tier_plan.tiers, data.firmMonthlyVolume, data.quantity);
-            }
-            else
-            {
-                fee = calculateTieredFee(tier_plan.tiers, data.firmMonthlyVolume, data.quantity);
-            }
-            break;
-        case EN_Tier_Price:
-            fee = calculateTieredFee(tier_plan.tiers, data.price, data.quantity);
-            break;
+        if (tier_plan.isRegressive)
+        {
+            fee = calculateTieredFeeRegressive(tier_plan.tiers, (data.mpidMonthlyVolume - data.quantity), data.quantity);
+        }
+        else
+        {
+            fee = calculateTieredFee(tier_plan.tiers, (data.mpidMonthlyVolume - data.quantity), data.quantity);
+        }
+        break;
+    case EN_Tier_FirmMonthly_Volume:
 
-        case EN_Tier_Quantity:
-            fee = calculateTieredFee(tier_plan.tiers, data.quantity, data.quantity);
-            break;
+        if (tier_plan.isRegressive)
+        {
+            fee = calculateTieredFeeRegressive(tier_plan.tiers, (data.firmMonthlyVolume - data.quantity), data.quantity);
+        }
+        else
+        {
+            fee = calculateTieredFee(tier_plan.tiers, (data.firmMonthlyVolume - data.quantity), data.quantity);
+        }
+        break;
+    case EN_Tier_Price:
+        fee = calculateTieredFee(tier_plan.tiers, data.price);
+        break;
+
+    case EN_Tier_Quantity:
+        fee = calculateTieredFee(tier_plan.tiers, data.quantity);
+        break;
+
     }
+      
     return fee;
 }
+
 
 void TieredMethod::parse_json(std::string& formula)
 {
 
-    
+
     if (formula.empty())
     {
         throw ParsingException("JSON Method Is Empty Unable To Parse");
@@ -73,7 +77,7 @@ void TieredMethod::parse_json(std::string& formula)
         throw ParsingException("Failed To Parse Tiered Formula");
     };
 
-    if (!(document.HasMember("TieredType")) || !(document.HasMember("TieredTable")) || !(document.HasMember("isRegressive")) )    //MR: Added Check for new Bool
+    if (!(document.HasMember("TieredType")) || !(document.HasMember("TieredTable")) || !(document.HasMember("isRegressive")))    //MR: Added Check for new Bool
     {
         throw ParsingException("Failed To Parse Tiered Formula");
     }
@@ -87,10 +91,10 @@ void TieredMethod::parse_json(std::string& formula)
         const rapidjson::Value& jsonData = *value;
         Tier tier;
         check_members_existence(jsonData);
-        tier.sequence = jsonData["SequenceId"].IsNull() ? 0          :  jsonData["SequenceId"].GetInt(); 
+        tier.sequence = jsonData["SequenceId"].IsNull() ? 0 : jsonData["SequenceId"].GetInt();
         //tier.start    = jsonData["StartRange"].IsNull() ? 0          :  jsonData["StartRange"].GetDouble();   MR: Not Required Anymore
-        tier.end      = jsonData["EndRange"].IsNull()   ? INT64_MAX  :  jsonData["EndRange"].GetDouble();
-        tier.fee      = jsonData["Fee"].IsNull()        ? 0.0        :  std::stod(jsonData["Fee"].GetString());
+        tier.end = jsonData["EndRange"].IsNull() ? INT64_MAX : jsonData["EndRange"].GetDouble();
+        tier.fee = jsonData["Fee"].IsNull() ? 0.0 : std::stod(jsonData["Fee"].GetString());
 
         tier_plan.tiers.push_back(tier);
     }
@@ -108,68 +112,123 @@ void TieredMethod::check_members_existence(const rapidjson::Value& data)
     }
 }
 
-std::pair<bool, double> TieredMethod::calculateTieredFeeRegressive(std::vector<Tier>& Tiers, int64_t checkQty, int64_t quantity) 
+std::pair<bool, double> TieredMethod::calculateTieredFeeRegressive(const std::vector<Tier>& tiers, double prevQty, double deltaQty)
 {
     double fee = 0.0;
-    bool tierCrossed = false;
-    double rebate = 0;
-    int newTierIndex = 0;
+    double rebate = 0.0;
+    double newQty = prevQty + deltaQty;
 
-    //Get Current Tier
-    for (int i = 0; i < Tiers.size() - 1; ++i) 
-    {   
-        //excluding default end tier
-        if (checkQty - quantity > Tiers[i].end) 
-        { //If Old & New Qty are both Next Tier
-            tierCrossed = false;
-            continue;
-        }
-
-        else if (checkQty - quantity <= Tiers[i].end && (checkQty > Tiers[i].end)) 
-        {
-            //If Tiered Crossed
-            tierCrossed = true;
-            rebate = Tiers[i].end * (Tiers[i].fee - Tiers[i + 1].fee);
-            newTierIndex = i + 1;
-            break;
-        }
-
-        else if (checkQty <= Tiers[i].end) 
-        { 
-            //If totally in this tier
-            tierCrossed = false;
-            fee = Tiers[i].fee * quantity;
-            break;
-        }
-    }
-
-    if (tierCrossed) 
+    for (auto tier = tiers.begin(); tier != tiers.end(); ++tier)
     {
-        fee = (Tiers[newTierIndex].fee * quantity) - rebate;
-        return { true,fee };
-    }
-    else
-        return { true,fee };
-   
+        double tierEnd = tier->end;
+        double tierRate = tier->fee;
 
-    return { false, fee };
+        // --- CASE 1: Entire delta lies inside this tier ---
+        if (newQty <= tierEnd)
+        {
+            fee += deltaQty * tierRate;
+            return { true, fee + rebate };
+        }
+
+        // --- CASE 2: Crossing this tier boundary ---
+        if (Utility::almostLess(prevQty, tierEnd) && Utility::almostGreater(newQty, tierEnd))
+        {
+            // Quantity inside THIS tier
+            double qtyHere = tierEnd - prevQty;
+            fee += qtyHere * tierRate;
+
+            // Now handle remaining quantity through next tiers
+            auto currTier = tier;
+            for (auto nextTier = std::next(tier); nextTier != tiers.end(); currTier = nextTier++)
+            {
+                double currEnd = currTier->end;
+                double currRate = currTier->fee;
+                double nextEnd = nextTier->end;
+                double nextRate = nextTier->fee;
+
+                // Rebate at boundary
+                rebate += currEnd * (nextRate - currRate);
+
+                // Does remaining quantity finish inside this tier?
+                if (Utility::almostLessOrEqual(newQty, nextEnd))
+                {
+                    fee += (newQty - currEnd) * nextRate;
+                    return { true, fee + rebate };
+                }
+
+                // Otherwise consume full tier chunk
+                fee += (nextEnd - currEnd) * nextRate;
+            }
+
+            // Should never occur unless tiers malformed
+            break;
+        }
+    }
+
+    return { false, 0 };// Something went wrong
 }
 
-template<typename T>
-std::pair<bool, double> TieredMethod::calculateTieredFee(std::vector<Tier>& Tiers, T checkQty, int64_t quantity)
+//Calculate Tiered for MonthlyVolume based stuff
+std::pair<bool, double> TieredMethod::calculateTieredFee(const std::vector<Tier>& tiers, double prevQty, double deltaQty)
 {
-    double fee = 0.0;
-    for (const auto& tier : Tiers)
+    if (tiers.empty())
     {
-        if (checkQty <= tier.end)
-        {
-
-            fee = quantity * tier.fee;
-
-            return { true, fee };
-        }
+        return { false, 0.0 };
     }
 
-    return { false, fee };
+    double newQty = prevQty + deltaQty;
+    double lastEnd = 0.0;
+    double fee = 0.0;
+
+    for (const auto& tier : tiers)
+    {
+        double tierStart = lastEnd;
+        double tierEnd = tier.end;
+        lastEnd = tierEnd;
+
+        // True delta overlap inside this tier:
+        double overlapStart = std::max(prevQty, tierStart);
+        double overlapEnd = std::min(newQty, tierEnd);
+
+        if (Utility::almostGreater(overlapEnd, overlapStart))   // delta exists here
+        {
+            double overlapQty = overlapEnd - overlapStart;
+            fee += overlapQty * tier.fee;
+        }
+
+        // once we crossed currentTier's end, stop
+        if (Utility::almostGreaterOrEqual(tierEnd, newQty))
+            break;
+    }
+
+    return { true, fee };
 }
 
+//Overload for QTY & PRICE
+std::pair<bool, double> TieredMethod::calculateTieredFee(const std::vector<Tier>& tiers, double qty)
+{
+    if (!tiers.empty())
+    {
+        double fee = 0;
+        double remaining = qty;
+        double previous_tier_end = 0;
+
+        for (const auto& tier : tiers)
+        {
+            if (Utility::almostGreater(qty, tier.end))
+            {
+                fee += (tier.end - previous_tier_end) * tier.fee;
+                previous_tier_end = tier.end;
+            }
+            else
+            {
+                remaining -= previous_tier_end;
+                fee += remaining * tier.fee;
+                remaining = 0;
+                return { true, fee };
+            }
+        }
+    }
+    
+    return { false, 0.0 };
+}

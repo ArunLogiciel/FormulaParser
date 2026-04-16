@@ -4,12 +4,12 @@
 #include "rapidjson/document.h"
 #include <boost/algorithm/string.hpp>
 //WARNING: This class is not thread-safe.
-RawParser::RawParser(std::string recvdFormula) : isCompiled (false)
+RawParser::RawParser(std::string recvdFormula) : isCompiled(false)
 {
 	formula = recvdFormula;
 	ParseFormula();
 	PopulateSymbolTable();
-	//isCompiled = parser.compile(formula, expression);
+	isCompiled_1 = parser.compile(formula, expression);
 	isCompiled = parser.compile(expr_string, expression);
 }
 std::pair<bool, double> RawParser::Evaluate(const OrderExecutionData& data)
@@ -58,30 +58,16 @@ bool RawParser::IsCompiled()
 {
 	return isCompiled;
 }
-
+bool RawParser::IsCompiled_1()
+{
+	return isCompiled_1;
+}
 void RawParser::ParseFormula()
 {
-	//if (formula.empty())
-	//{
-	//	throw std::exception("Raw Formula Is Empty - Unable To Parse");
-	//}
-
-	//for (size_t i = 0; i < formula.length(); i++)
-	//{
-	//	if (formula[i] == '\n' || formula[i] == '\r\n' || formula[i] == '\r' || formula[i] == '\n')
-	//	{
-	//		formula[i] = ' ';
-	//	}
-
-	//	else if ((i < formula.length() - 4) &&
-	//		(formula[i] == '\\' && formula[i + 1] == 'r' && formula[i + 2] == '\\' && formula[i + 3] == 'n'))
-	//	{
-	//		formula[i] = ' ';
-	//		formula.erase(i + 1, 3); // Removing next three chars of \r\n
-	//	}
-	//}
-
-
+	if (formula.empty())
+	{
+		throw std::exception("Raw Formula Is Empty - Unable To Parse");
+	}
 
 	for (size_t i = 0; i < formula.length(); i++)
 	{
@@ -97,6 +83,23 @@ void RawParser::ParseFormula()
 			formula.erase(i + 1, 3); // Removing next three chars of \r\n
 		}
 	}
+
+
+
+	//for (size_t i = 0; i < formula.length(); i++)
+	//{
+	//	if (formula[i] == '\n' || formula[i] == '\r\n' || formula[i] == '\r' || formula[i] == '\n')
+	//	{
+	//		formula[i] = ' ';
+	//	}
+
+	//	else if ((i < formula.length() - 4) &&
+	//		(formula[i] == '\\' && formula[i + 1] == 'r' && formula[i + 2] == '\\' && formula[i + 3] == 'n'))
+	//	{
+	//		formula[i] = ' ';
+	//		formula.erase(i + 1, 3); // Removing next three chars of \r\n
+	//	}
+	//}
 
 	rapidjson::Document document;
 	document.Parse(formula.c_str());

@@ -5,7 +5,7 @@
 
 namespace FeeFormula
 {
-	
+
 	TabularMethod::TabularMethod(std::string formula)
 	{
 		parse_json(formula);
@@ -19,32 +19,32 @@ namespace FeeFormula
 		static const char* lteq_op = "<=";
 		static const char* eq = "=";
 
-		if (str.substr(0, 2) == gteq_op) 
+		if (str.substr(0, 2) == gteq_op)
 		{
 			return { EN_EqualityOperator_GreaterThanEqualsTo,str.substr(2) };
 		}
 
-		else if (str.substr(0, 2) == lteq_op) 
+		else if (str.substr(0, 2) == lteq_op)
 		{
 			return { EN_EqualityOperator_LessThanEqualsTo,str.substr(2) };
 		}
 
-		else if (str.substr(0, 1) == gt_op) 
+		else if (str.substr(0, 1) == gt_op)
 		{
 			return { EN_EqualityOperator_GreaterThan,str.substr(1) };
 		}
 
-		else if (str.substr(0, 1) == lt_op) 
+		else if (str.substr(0, 1) == lt_op)
 		{
 			return { EN_EqualityOperator_LessThan,str.substr(1) };
 		}
 
-		else if (str.substr(0, 1) == eq) 
+		else if (str.substr(0, 1) == eq)
 		{
 			return { EN_EqualityOperator_EqualsTo,str.substr(1) };
 		}
 
-		else 
+		else
 		{
 			return { EN_EqualityOperator_EqualsTo,str };
 		}
@@ -388,7 +388,7 @@ namespace FeeFormula
 				m_tree.branches_.emplace_back(leaf);
 				i++;
 			}
-			catch (std::exception &ex)
+			catch (std::exception& ex)
 			{
 				std::stringstream sstrError;
 				sstrError << " 'Variable of Tabular Plan is Missing' - " << ex.what();
@@ -445,12 +445,12 @@ namespace FeeFormula
 		std::vector<std::string> memberStrings = { "SequenceId",	"ExecBroker", "Contra", "Route",
 												   "InternalRoute", "LIQ", "Tape", "Price",
 												   "Quantity", "AfterHours", "Penny", "Time",
-												   "InternalLiq", "BeforeHours","Lot","Fee", "Side", "MonthlyVolume"};
+												   "InternalLiq", "BeforeHours","Lot","Fee", "Side", "MonthlyVolume" };
 		for (const auto& member : memberStrings)
 		{
 			if (!data.HasMember(member.c_str()))
 			{
-				std::string temp = " 'Member of JSON Formula Doesn't Exist: "+ member;
+				std::string temp = " 'Member of JSON Formula Doesn't Exist: " + member;
 				//LogWarning() << temp << " ' ";
 				throw std::exception(temp.c_str());
 			}
@@ -460,7 +460,7 @@ namespace FeeFormula
 	{
 		//std::cout << " 'Parsing JSON of Tabular Method'";
 		rapidjson::Document document;
-		
+
 		if (formula.empty())
 		{
 			//LogWarning() << " 'JSON Method Is Empty Unable To Parse'";
@@ -486,7 +486,7 @@ namespace FeeFormula
 		{
 			std::vector<std::string> formula;
 			const rapidjson::Value& jsonData = *NoKeyInPair;
-			
+
 			check_members_existence(jsonData);
 
 			/*0*/	formula.emplace_back(!jsonData["SequenceId"].IsNull() ? std::to_string(jsonData["SequenceId"].GetInt()) : "");
@@ -516,20 +516,20 @@ namespace FeeFormula
 			/*24*/formula.emplace_back((jsonData.HasMember("LastMarket") && !jsonData["LastMarket"].IsNull()) ? jsonData["LastMarket"].GetString() : "");
 			parsed_formulas.emplace_back(formula);
 		}
-		sort(parsed_formulas.begin(), parsed_formulas.end(), 
-		[](const std::vector <std::string>& lhs, const std::vector <std::string>& rhs) 
-		{ 
-			try
+		sort(parsed_formulas.begin(), parsed_formulas.end(),
+			[](const std::vector <std::string>& lhs, const std::vector <std::string>& rhs)
 			{
-				int a = std::stoi(lhs[0]);
-				int b = std::stoi(rhs[0]);
-				return (a < b);
-			}
-			catch(...)
-			{
-				return false;
-			}
-		});
+				try
+				{
+					int a = std::stoi(lhs[0]);
+					int b = std::stoi(rhs[0]);
+					return (a < b);
+				}
+				catch (...)
+				{
+					return false;
+				}
+			});
 	}
 
 	bool TabularMethod::string_to_bool(const std::string& str)

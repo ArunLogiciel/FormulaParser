@@ -9,7 +9,7 @@ namespace LSL
 		{
 			class MethodInterface 
 			{
-				private:
+				protected:
 					virtual void parse_json(std::string& formula) = 0;
 
 				public:

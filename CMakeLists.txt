@@ -36,6 +36,9 @@ add_library(${PROJECT_NAME} SHARED ${src}
     "include/JsonParser.h"
 )
 
+# --- Set the output DLL name ---
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "FeeCalculationHelper")
+
 # --- Include directories ---
 target_include_directories(${PROJECT_NAME} 
     PUBLIC 

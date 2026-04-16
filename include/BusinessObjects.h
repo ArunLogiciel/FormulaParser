@@ -36,10 +36,30 @@ enum FormulaResult
 	FEE,
 	SIDE,
 	MONTHLY_VOLUME,
+	MULTIPLIER,
 	UNDERLYING_SYMBOL,
 	MPID_MONTHLY_VOLUME,
 	FIRM_MONTHLY_VOLUME,
 	LAST_MARKET,
+	EXCHANGE_TYPE
+};
+
+enum RoundingScheme
+{
+	EN_RoundingScheme_HalfUp = 0,
+	EN_RoundingScheme_HalfDown = 1,
+	EN_RoundingScheme_AlwaysUp = 2,
+	EN_RoundingScheme_AlwaysDown = 3,
+	EN_RoundingScheme_Truncate = 4,
+	EN_RoundingScheme_Count = 5
+};
+enum ExchangeType
+{
+	EN_ExchangeType_None = 0,
+	EN_ExchangeType_NMS = 1,
+	EN_ExchangeType_OTC = 2,
+	EN_ExchangeType_Both = 3,
+	EN_ExchangeType_NA = 4
 };
 enum FormulaType
 {
@@ -60,6 +80,13 @@ enum  EqualityOperator
 	EN_EqualityOperator_LessThan = 4,
 	EN_EqualityOperator_GreaterThan = 5,
 	EN_EqualityOperator_NotEqualsTo = 6
+};
+enum Lot
+{
+	EN_Lot_None = 0,
+	EN_Lot_Odd = 1,
+	EN_Lot_Even = 2,
+	EN_Lot_Mixed = 3
 };
 
 using Fee = double;
@@ -221,20 +248,20 @@ struct OrderExecutionData
 		else if (key == LAST_MARKET) {
 			return lastMarket;
 		}
-		//else if (key == LOT)
-		//{
-		//	switch (lot)
-		//	{
-		//	case 1:
-		//		return "ODD";
-		//	case 2:
-		//		return "EVEN";
-		//	case 3:
-		//		return "MIXED";
-		//	default:
-		//		return "";
-		//	}
-		//}
+		else if (key == LOT)
+		{
+			switch (lot)
+			{
+			case 1:
+				return "ODD";
+			case 2:
+				return "EVEN";
+			case 3:
+				return "MIXED";
+			default:
+				return "";
+			}
+		}
 		else if (key == TIME)
 		{
 			return time;
@@ -289,7 +316,7 @@ struct OrderExecutionData
 	bool beforeHours{ false };
 	bool penny{ false };
 
-	/*Lot lot{};*/
+	Lot lot{};
 	int side{};
 	int capacity{};
 
@@ -346,6 +373,7 @@ struct IdentifiableVariables
 	double MPIdMonthlyVolume = 0;
 	double FirmMonthlyVolume = 0;
 	double Fees = 0;
+	double Multiplier = 1.0;
 
 	std::string Route{ "" };
 	std::string LIQ{ "" };
@@ -385,6 +413,7 @@ struct IdentifiableVariables
 		InternalRoute = rhs.internalRoute;
 		ExecBroker = rhs.execBroker;
 		UnderlyingSymbol = rhs.underlyingSymbol;
+		Multiplier = rhs.multiplier;
 		char temp = static_cast<int>(rhs.side); //To Make Side Compatible with ExprTk
 		Side = temp;							//This is Necessary
 		ExchangeType = rhs.ExchangeType;

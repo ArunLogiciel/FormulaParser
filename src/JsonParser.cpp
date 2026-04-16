@@ -86,11 +86,11 @@ void makeOrder(rapidjson::Document& doc, std::priority_queue<OrderExecutionData>
                 data.afterHours = safeGetBool(findMemberCaseInsensitive(exec, "AfterHours"));
                 data.penny = safeGetBool(findMemberCaseInsensitive(exec, "Penny"));
                 data.time = safeGetString(findMemberCaseInsensitive(exec, "Time"));
-                data.ExchangeType= safeGetInt(findMemberCaseInsensitive(exec, "ExchangeType"));
+                data.ExchangeType = safeGetInt(findMemberCaseInsensitive(exec, "ExchangeType"));
                 data.type = safeGetInt(findMemberCaseInsensitive(exec, "Type"));
                 data.side = safeGetInt(findMemberCaseInsensitive(exec, "Side"));
                 //data.lot = findMemberCaseInsensitive(exec, "Lot")); // need to discuss data type with talha bhai
-                data.lastMarket= safeGetString(findMemberCaseInsensitive(exec, "LastMarket")); // need to discuss data type with talha bhai
+                data.lastMarket = safeGetString(findMemberCaseInsensitive(exec, "LastMarket")); // need to discuss data type with talha bhai
                 data.date = safeGetString(findMemberCaseInsensitive(exec, "Date"));
                 data.accountValue = safeGetString(findMemberCaseInsensitive(exec, "AccountValue"));
                 data.orderId = safeGetString(findMemberCaseInsensitive(exec, "OrderId"));
@@ -104,12 +104,12 @@ void makeOrder(rapidjson::Document& doc, std::priority_queue<OrderExecutionData>
                 //data.execQty = safeGetDouble(findMemberCaseInsensitive(exec, "ExecQty"));
                 //data.lastShares = safeGetDouble(findMemberCaseInsensitive(exec, "LastShares"));
                 //data.capacity = safeGetInt(findMemberCaseInsensitive(exec, "Capacity")); // Need to check required or not
-               
+
                 //
                 //data.firmId = safeGetString(findMemberCaseInsensitive(exec, "FirmId")); // Need to check required or not
                 //data.fileName = safeGetString(findMemberCaseInsensitive(exec, "FileName")); // Need to check required or not
                 //data.mpidRecv = safeGetString(findMemberCaseInsensitive(exec, "MPIDRecv")); 
-               
+
 
                 orderData.push(data);
             }
